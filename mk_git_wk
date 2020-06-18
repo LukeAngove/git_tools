@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+ROOT=$HOME
+
+GIT_DIR=$ROOT/git
+WK_DIR=$ROOT/workspace
+
+REPO=$1
+BRANCH=$2
+ROOT_BRANCH=$3 # Only used for new branches
+
+if [ -z $ROOT_BRANCH ]
+then
+	ROOT_BRANCH=master
+fi
+
+THIS_GIT_DIR=$GIT_DIR/$REPO
+THIS_WK_DIR=$WK_DIR/$REPO/$BRANCH
+
+if [ -d $THIS_WK_DIR ]
+then
+	echo "Branch $BRANCH of repo $REPO already exists, aborting."
+	exit
+fi
+
+set +x
+
+mkdir -p $THIS_WK_DIR
+
+if git --git-dir=$THIS_GIT_DIR worktree add $THIS_WK_DIR $BRANCH
+then
+	echo "Branch checked out at $THIS_WK_DIR"
+else
+	echo "Branch does not exist. Creating new branch $BRANCH based on $ROOT_BRANCH, checked out at $THIS_WK_DIR"
+	git --git-dir=$THIS_GIT_DIR worktree add $THIS_WK_DIR -b $BRANCH $ROOT_BRANCH
+fi
+

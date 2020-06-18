@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+ROOT=$HOME
+
+GIT_DIR=$ROOT/git
+
+REPO=$1
+
+THIS_GIT_DIR=$GIT_DIR/$REPO
+
+if [ -d $THIS_GIT_DIR ]
+then
+	echo "Repo $REPO already exists, aborting."
+	exit
+fi
+
+mkdir -p $THIS_GIT_DIR
+
+git --git-dir=$THIS_GIT_DIR init --bare
+
+# Below is a complete hack; apparently you can't make a workspace without having at least one commit, so we'll make one
+set -e
+
+TMP_DIR=$(mktemp -d -t git-XXXXXXXXXX)
+
+pushd $TMP_DIR
+git init
+echo "Initial commit" > README.md
+git add README.md
+git commit -m "Initial commit"
+git remote add origin $THIS_GIT_DIR
+git push --set-upstream origin master
+popd
+
+rm -rf $TMP_DIR
+
+mk_git_wk $REPO master
+
